@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext ,useState } from 'react'
 import firebase from '../configs/index'
 import { Route, Redirect } from 'react-router-dom'
 import { postsContext } from '../context/postContext'
@@ -8,49 +8,114 @@ import { Link } from 'react-router-dom'
 
 import {
     Card, CardImg, CardText, CardBody,
-    CardTitle, CardSubtitle, Button
+    CardTitle, CardSubtitle, Button, Form, InputGroup, Input,
+    Spinner
   } from 'reactstrap';
+import { Fragment } from 'react'
 
 function PostIndevisual(props) {
-    const {state,dispatch} = useContext(postsContext);
-    var id = props.match.params.id;
-    // console.log(props)
-    var item = state.posts ?(state.posts.filter(post=>(post.id === id))) : ''
-    var post = item?(item.map(doc=>{
-        return(
-        <Card key={doc.id}>
-            <CardImg top width="100%" src={doc.data.cover} width="300px" height="180px" alt="Card image cap" />
-            <CardBody>
-              <CardTitle>{doc.data.title}</CardTitle>
-              <CardText>{doc.data.content }</CardText>
-              <Button>delete</Button>
-            </CardBody>
-          </Card>
-        )
-    })):(<p>loading...</p>)
-//  get the post from server..
-    var xx;
-    firebase.getPost(id).then(doc=>{
-    xx = (
-     <Card key={doc.id}>
-     <CardImg top width="100%" src={doc.cover} width="300px" height="180px" alt="Card image cap" />
-     <CardBody>
-       <CardTitle>{doc.title}</CardTitle>
-       <CardText>{doc.content }</CardText>
-       <Button>delete</Button>
-     </CardBody>
-   </Card>)
+    // const {state,dispatch} = useContext(postsContext);
+    const [stateFromServer, setStateFromServer] = useState(null);
+    const [isClick, setIsClick] = useState(false)
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [newFormData, setNewFormData] = useState({title: '',cover: '',content: ''})
 
-    }).catch(err=>{
-        console.log(err)
-    })
-        console.log(xx)
+    var id = props.match.params.id;
+
+    useEffect(()=>{
+
+        firebase.getPost(id).then(doc=>{
+              setStateFromServer(doc)
+        }).catch(err=>{
+            console.log(err)
+        });
+
+       const uns = firebase.getUserState().then(user=>{
+            setIsAuthenticated(true);
+        }).catch(err=>{
+            setIsAuthenticated(false);
+            console.log(err)
+        })
+    },[])
+
+    const editHandle=()=>{
+        setIsClick(!isClick)
+    }
+    const deleteHandle=()=>{
+        firebase.deletePost(id,stateFromServer.fileRef).then(res=>{
+            props.history.replace('/')
+        })
+        .catch(err=>{
+            console.log(err)
+        })
+    }
+    const saveHandle=()=>{
+        firebase.UpdatePost(newFormData,id,stateFromServer.fileRef).then(res=>{
+            console.log('success update')
+            props.history.replace('/')
+        }).catch(err=>{
+            console.log(err);
+        })
+    }
+
+    // ---------------        edit form   -----------
+    let createForm;
+    let btn;
+    if(isAuthenticated){
+        btn = (
+            <Fragment>
+                <Button color="primary" className="mr-3" onClick={editHandle}>edit</Button>
+                <Button color="danger" onClick={deleteHandle}>delete</Button>
+            </Fragment>
+        )
+    }
+
+    const post =stateFromServer ? (
+      <Card>
+            <CardImg src={stateFromServer.cover} height="280px" width="300px"></CardImg>
+        <CardBody>
+            <CardTitle>{stateFromServer.title}</CardTitle>
+            <CardText>{stateFromServer.content}</CardText>
+            {btn}
+        </CardBody>
+      </Card>
+    ):(<Spinner color="primary" style={{ width: '3rem', height: '3rem' }} />)
+
+
+    if(isClick){
+        createForm = (
+            <Form>
+                <InputGroup>
+                    <Input type="text" 
+                    onChange={(e)=>{setNewFormData({...newFormData,title: e.target.value})}}
+                      defaultValue={newFormData.title} className="my-2">
+                    </Input>
+                </InputGroup>
+
+                <InputGroup>
+                    <Input type="textarea" 
+                    onChange={(e)=>{setNewFormData({...newFormData,content: e.target.value})}}
+                    defaultValue={newFormData.content} className="my-3">
+                    </Input>             
+                </InputGroup>
+
+                <InputGroup>
+                    <Input type="file"
+                    onChange={(e)=>{setNewFormData({...newFormData,cover: e.target.files[0]})}}>
+                    </Input>
+                </InputGroup>
+                    <Button color="primary" onClick={saveHandle} className="my-3 mr-3">Save only auth</Button>
+                    <Button color="warning" onClick={editHandle} className="my-3">cancel</Button>
+            </Form>
+        )
+    }
+
     return (
-        <div>
+        <div className="card mx-auto" style={{ width:"440px",height:"280px"}}>
             {post}
-            {xx}
+            {createForm}
         </div>
     )
 }
 
-export default PostIndevisual
+export default PostIndevisual;

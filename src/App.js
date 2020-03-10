@@ -6,15 +6,8 @@ import Routes from './routes'
 function App() {
   return (
     <div className="App">
-
-      <marquee>
-        <h1 style={{color: 'blue'}}>hello Arif mamu</h1>
-      </marquee>
-
-      <Nav></Nav>
-      {/* <Main>
-      </Main> */}
-        <Routes/>
+      <Nav/>
+      <Routes/>
     </div>
   );
 }

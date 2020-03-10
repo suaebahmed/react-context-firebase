@@ -7,19 +7,21 @@ import { useContext , useEffect} from 'react'
 import { Route, Redirect } from 'react-router-dom'
 
 
-function Nav(props) {
+function NavBar(props) {
 
     const [userState, setUserState] = useState(null);
     const [userEmail, setUserEmail] = useState("")
     const {state,dispatch} = useContext(Auth)
 
+    const [collapsed, setCollapsed] = useState(true);
+    const toggleNavbar = () => setCollapsed(!collapsed);
+  
     useEffect(() => {
         firebase.getUserState().then(user=>{
             if(user){
                 setUserState(user)
                 setUserEmail(user.email)
             }
-            console.log("hey")
         })
     })
 
@@ -27,7 +29,6 @@ function Nav(props) {
         firebase.logout();
         setUserState(null);
         //----------- get router property  withRouter() --------
-        
         props.history.replace('/login')
         return dispatch({
             type: "LOGOUT",
@@ -37,16 +38,21 @@ function Nav(props) {
 
     let buttons;
     if(userState != null || state.user.hasOwnProperty('user')){
-        buttons = (<React.Fragment>
-                     <li>{userEmail}</li> 
-                     <li><button className="logout" onClick={logout}>LogOut</button></li>
-                  </React.Fragment>)
+
+    buttons = (
+    <React.Fragment>
+            <li>{userEmail}</li> 
+            <li><button className="logout" onClick={logout}>LogOut</button></li>
+    </React.Fragment>
+    )
     }else{
-        buttons = (<React.Fragment>
-                <li><Link to="/register">register</Link></li>
-                <li><Link to="/login">login</Link></li>
-         </React.Fragment>)
-    }
+    buttons = (
+        <React.Fragment>
+            <li><Link to="/register">register</Link></li>
+            <li><Link to="/login">login</Link></li>
+        </React.Fragment>
+    )
+}
 
     return (
         <nav>
@@ -61,5 +67,4 @@ function Nav(props) {
     )
 }
 
-
-export default withRouter(Nav)
+export default withRouter(NavBar)

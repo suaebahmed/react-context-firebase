@@ -58,8 +58,12 @@ class Firebase{
           })
   }
   async getUserState(){
-    return new Promise(resolve=>{
-      this.auth.onAuthStateChanged(resolve)
+    return new Promise((resolve,reject) =>{
+      this.auth.onAuthStateChanged(function(user){
+        if(user){
+          resolve(user)
+        }
+      })
     })
   }
   // ------------------
@@ -104,6 +108,51 @@ class Firebase{
     return postdata;
     
   }
+
+  async deletePost(postId,fileRef){
+    var rt = await this.storage.ref(fileRef).delete().catch(err=>{return err;})
+    this.db.collection("Posts").doc(postId).delete();
+    return rt;
+  }
+
+async UpdatePost({title,content,cover},id,oldFRef){
+      // store img
+      // download ref
+      // create firestore
+      var newObj = {
+
+      }
+      if(title !== ''){
+        newObj.title = title;
+      }
+      if(content !== ''){
+        newObj.content = content;
+      }
+
+      if(cover !== ''){
+        if(oldFRef !== undefined){
+          var a = await this.storage.ref(oldFRef).delete().catch(err=>{
+            console.log(err)
+          })
+        }
+        var x  = await this.storage.ref('reactImg/'+cover.name).put(cover); //not update
+        var fileRef = await x.ref.location.path;
+        var downloadURL = await this.storage.ref('reactImg/'+cover.name).getDownloadURL();
+        newObj.fileRef = fileRef;
+        newObj.cover = downloadURL;
+      }
+      console.log(newObj)
+
+      var z = await this.db.collection('Posts').doc(id).update(newObj)
+        .then(err=>{
+          return err;
+        })
+        .catch(err=>{
+          return err;
+        });
+        return z;
+}
+
 }
 
 export default new Firebase();

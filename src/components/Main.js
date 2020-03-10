@@ -31,7 +31,6 @@ function Main(props) {
     useEffect(()=>{
         getPosts()
     },[])
-    console.log(state)
 
 
     if(state.posts){
@@ -46,7 +45,9 @@ function Main(props) {
 
     var postsAr = state.posts?(state.posts.map(doc=>{
         return(
-        <Card key={doc.id}>
+
+    <div key={doc.id} className="card mx-auto my-4" style={{ width:"300px",height:"280px"}}>
+        <Card >
             <CardImg top width="100%" src={doc.data.cover} width="300px" height="180px" alt="Card image cap" />
             <CardBody>
               <CardTitle>{doc.data.title}</CardTitle>
@@ -54,13 +55,13 @@ function Main(props) {
                   <Link to={'/post/'+doc.id}>view</Link>
               </Button>
             </CardBody>
-          </Card>
-        )
+          </Card>              
+    </div>
+    )
     })):(<p>loading...</p>)
 
     return (
         <div>
-            {/* {props.children} */}
             {postsAr}
         </div>
     )
