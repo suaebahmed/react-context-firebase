@@ -63,6 +63,15 @@ class Firebase{
         if(user){
           resolve(user)
         }
+
+      })
+    })
+  }
+  // my idea
+  async isAuthenticated(){
+    return new Promise(resolve=>{
+      this.auth.onAuthStateChanged(function(user){
+        resolve(user)
       })
     })
   }
@@ -72,7 +81,16 @@ class Firebase{
     // console.log(title,content,cover)
     //1. storage
     //2. getDownloadURL
-    //3. firestore
+    //3. firestor
+    var newPost = {
+      title,
+      content,
+    }
+    this.isAuthenticated().then(user=>{
+      if(user){
+        newPost.uid = user.uid  // to get user uid ------
+      }
+    })
 
     var storeRef = this.storage.ref('reactImg');
     var storeChildRef = storeRef.child(cover.name);
@@ -80,18 +98,18 @@ class Firebase{
     //2
     var downloadURL = await storeChildRef.getDownloadURL()
     var fileRef = postCover.ref.location.path;
-    var newPost ={
-      title,
-      content,
-      cover: downloadURL,
-      fileRef,
-    }
+
+    newPost.cover = downloadURL;
+    newPost.fileRef = fileRef;
     // 3
     const firestorePost = await this.db.collection('Posts').add(newPost).catch(err=>{
       return err;
     });
     return firestorePost;
   }
+
+
+
 
   async getPosts(){
     let postArray = [];

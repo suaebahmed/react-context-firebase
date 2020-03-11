@@ -6,14 +6,27 @@ import { Auth } from '../context/authContext'
 import { useContext , useEffect} from 'react'
 import { Route, Redirect } from 'react-router-dom'
 
-function Create() {
+function Create(props) {
     const [isBusy, setIsBusy] = useState(false);
-    const [post,setPost] = useState({title: '',content: '',cover: ''})
+    const [post,setPost] = useState({title: '',content: '',cover: '', uid: ''}) // this uid
+
+    useEffect(()=>{
+        firebase.isAuthenticated().then(user=>{
+            if(!user){
+                props.history.push('/login');
+            }
+        }).catch(err=>{
+            console.log(err)
+        })
+    })
+
 
     const submitPost=(e)=>{
         e.preventDefault();
         setIsBusy(true);
-
+        // console.log(post)
+        // setPost({...post,uid: uid}) // not assign value before firebase.Create function call..
+        // console.log(uid)
         firebase.CreatePost(post).then(res=>{
             console.log('successfull')
             setIsBusy(false);
@@ -22,7 +35,6 @@ function Create() {
             setIsBusy(false);
         })
     }
-
 
     let createForm;
     if(isBusy){

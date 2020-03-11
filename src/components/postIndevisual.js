@@ -1,6 +1,6 @@
 import React, { useContext ,useState } from 'react'
 import firebase from '../configs/index'
-import { Route, Redirect } from 'react-router-dom'
+import { Route, Redirect, useHistory, useLocation, useParams } from 'react-router-dom'
 import { postsContext } from '../context/postContext'
 import { Auth } from '../context/authContext'
 import { useEffect } from 'react'
@@ -15,12 +15,14 @@ import { Fragment } from 'react'
 
 function PostIndevisual(props) {
     // const {state,dispatch} = useContext(postsContext);
-    const [stateFromServer, setStateFromServer] = useState(null);
+    const [stateFromServer, setStateFromServer] = useState('');
     const [isClick, setIsClick] = useState(false)
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [newFormData, setNewFormData] = useState({title: '',cover: '',content: ''})
+    const [uid, setUid] = useState('')
 
-    var id = props.match.params.id;
+    // var id = props.match.params.id;
+    let { id } = useParams();
 
     useEffect(()=>{
 
@@ -31,12 +33,14 @@ function PostIndevisual(props) {
         });
 
        const uns = firebase.getUserState().then(user=>{
+            setUid(user.uid)
             setIsAuthenticated(true);
         }).catch(err=>{
             setIsAuthenticated(false);
             console.log(err)
         })
     },[])
+    
 
     const editHandle=()=>{
         setIsClick(!isClick)
@@ -61,7 +65,9 @@ function PostIndevisual(props) {
     // ---------------        edit form   -----------
     let createForm;
     let btn;
-    if(isAuthenticated){
+    // if true ; user can delete the post..
+    // isAuthenticated && stateFromServer.uid == uid
+    if(isAuthenticated && stateFromServer.uid == uid){
         btn = (
             <Fragment>
                 <Button color="primary" className="mr-3" onClick={editHandle}>edit</Button>
@@ -69,7 +75,6 @@ function PostIndevisual(props) {
             </Fragment>
         )
     }
-
     const post =stateFromServer ? (
       <Card>
             <CardImg src={stateFromServer.cover} height="280px" width="300px"></CardImg>

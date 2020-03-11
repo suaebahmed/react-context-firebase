@@ -13,9 +13,7 @@ function NavBar(props) {
     const [userEmail, setUserEmail] = useState("")
     const {state,dispatch} = useContext(Auth)
 
-    const [collapsed, setCollapsed] = useState(true);
-    const toggleNavbar = () => setCollapsed(!collapsed);
-  
+
     useEffect(() => {
         firebase.getUserState().then(user=>{
             if(user){
